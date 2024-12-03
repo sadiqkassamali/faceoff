@@ -4,7 +4,7 @@ setup(
     name='fakeoff',
     version='1.0',
     packages=[''],
-    url='faceoff.streamlit.app',
+    url='faceoff.streamlit.py.app',
     license='MIT',
     author='sadiq kassamali',
     author_email='sadiqkassamali@gmail.com',
