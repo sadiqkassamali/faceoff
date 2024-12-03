@@ -4,13 +4,13 @@ import customtkinter as ctk
 import threading
 import os
 import cv2
-import numpy as np
 from stegano import lsb
 import torch
 from art.attacks.evasion import FastGradientMethod
 from art.estimators.classification import PyTorchClassifier
 from torchvision import models
 import ffmpeg
+import numpy as np
 
 # Global Variables
 input_file = None
@@ -18,14 +18,11 @@ output_file = None
 
 # Core Functions
 def load_media(file_path):
-    """Determine if input is an image or video and load it accordingly."""
     ext = os.path.splitext(file_path)[1].lower()
     if ext in [".jpg", ".png", ".jpeg", ".bmp", ".tiff"]:
-        # Load image
         image = cv2.imread(file_path)
         return "image", [image]
     elif ext in [".mp4", ".avi", ".mkv", ".mov"]:
-        # Load video
         cap = cv2.VideoCapture(file_path)
         frames = []
         while cap.isOpened():
@@ -39,7 +36,6 @@ def load_media(file_path):
         raise ValueError("Unsupported file format. Provide an image or video.")
 
 def save_media(media_type, frames, output_path, fps=30):
-    """Save frames as an image or video."""
     if media_type == "image":
         cv2.imwrite(output_path, frames[0])  # Save first frame for image
     elif media_type == "video":
@@ -51,63 +47,54 @@ def save_media(media_type, frames, output_path, fps=30):
         out.release()
 
 def compress_media(input_media, output_media, media_type, crf=23):
-    """Compress the media file using FFmpeg."""
     if media_type == "video":
         ffmpeg.input(input_media).output(
             output_media, vcodec='libx265', crf=crf, acodec='aac', preset='medium'
         ).run(overwrite_output=True)
     elif media_type == "image":
         ffmpeg.input(input_media).output(
-            output_media, qscale=2  # Adjust for image compression
+            output_media, qscale=2
         ).run(overwrite_output=True)
 
 def process_media(input_path, output_path):
-    """Process media with noise, metadata embedding, adversarial perturbation, and compression."""
     global output_file
     media_type, frames = load_media(input_path)
     processed_frames = []
 
-    # Load Pretrained Model
+    log_message(f"Loaded {media_type}: {len(frames)} frames")
+    log_message("Loaded ResNet50 model for adversarial perturbation")
+
     model = models.resnet50(pretrained=True)
     model.eval()
 
-    # Process each frame
     for i, frame in enumerate(frames):
-        # Add noise
+        log_message(f"Processing frame {i+1}/{len(frames)}")
+
         noisy_frame = apply_noise(frame)
-
-        # Embed hidden metadata
-        temp_image_path = "temp_frame.png"
-        stego_frame = embed_message(noisy_frame, f"Protected Frame {i+1}", temp_image_path)
-
-        # Adversarial perturbation
+        stego_frame = embed_message(noisy_frame, f"Protected Frame {i+1}")
         adversarial_frame = generate_adversarial_example(stego_frame, model)
         processed_frames.append(adversarial_frame)
 
-    # Save processed media
     save_media(media_type, processed_frames, output_path)
     compressed_output_path = f"compressed_{os.path.basename(output_path)}"
     compress_media(output_path, compressed_output_path, media_type)
 
-    # Update global output file
     output_file = compressed_output_path
 
 # Supporting Functions
 def apply_noise(image, noise_level=0.01):
-    """Add imperceptible noise to the image."""
     noise = np.random.normal(0, noise_level, image.shape).astype(np.float32)
     noisy_image = np.clip(image + noise, 0, 255).astype(np.uint8)
     return noisy_image
 
-def embed_message(frame, message, temp_path):
-    """Embed a hidden message into a frame."""
-    cv2.imwrite(temp_path, frame)  # Save frame temporarily for steganography
-    secret_image = lsb.hide(temp_path, message)
-    secret_image.save(temp_path)
-    return cv2.imread(temp_path)
+def embed_message(frame, message, temp_path="temp_frame.png"):
+    temp_path_with_extension = os.path.splitext(temp_path)[0] + ".png"
+    cv2.imwrite(temp_path_with_extension, frame)
+    secret_image = lsb.hide(temp_path_with_extension, message)
+    secret_image.save(temp_path_with_extension)
+    return cv2.imread(temp_path_with_extension)
 
 def generate_adversarial_example(image, model):
-    """Generate an adversarial example using FGSM."""
     image_tensor = torch.tensor(image.transpose(2, 0, 1), dtype=torch.float32).unsqueeze(0)
     classifier = PyTorchClassifier(
         model=model,
@@ -120,6 +107,11 @@ def generate_adversarial_example(image, model):
     attack = FastGradientMethod(estimator=classifier, eps=0.01)
     adversarial_image = attack.generate(x=image_tensor.numpy())
     return adversarial_image[0].transpose(1, 2, 0).astype(np.uint8)
+
+# Logging for GUI
+def log_message(message):
+    log_textbox.insert(tk.END, f"{message}\n")
+    log_textbox.see(tk.END)
 
 # GUI Functions
 def select_file():
@@ -137,17 +129,16 @@ def process_file():
         return
 
     output_path = os.path.splitext(input_file)[0] + "_processed.mp4"
-    progress_bar.start()
     threading.Thread(target=lambda: process_and_finish(input_file, output_path)).start()
 
 def process_and_finish(input_path, output_path):
     try:
+        log_message(f"Starting processing: {input_path}")
         process_media(input_path, output_path)
-        progress_bar.stop()
-        messagebox.showinfo("Success", f"File processed successfully!\nSaved at: {output_file}")
+        log_message("Processing completed successfully!")
+        log_message(f"Output saved at: {output_file}")
     except Exception as e:
-        progress_bar.stop()
-        messagebox.showerror("Error", str(e))
+        log_message(f"Error during processing: {str(e)}")
 
 # GUI Setup
 ctk.set_appearance_mode("System")
@@ -155,7 +146,7 @@ ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 app.title("AI-Powered Media Processor")
-app.geometry("500x300")
+app.geometry("600x400")
 
 # UI Components
 title_label = ctk.CTkLabel(app, text="AI-Powered Media Processor", font=("Arial", 18))
@@ -170,8 +161,8 @@ select_button.pack(pady=10)
 process_button = ctk.CTkButton(app, text="Process File", command=process_file)
 process_button.pack(pady=10)
 
-progress_bar = ctk.CTkProgressBar(app, mode="indeterminate")
-progress_bar.pack(pady=20, padx=50)
+log_textbox = tk.Text(app, height=10, width=80, wrap=tk.WORD)
+log_textbox.pack(pady=10)
 
 # Start GUI
 app.mainloop()
