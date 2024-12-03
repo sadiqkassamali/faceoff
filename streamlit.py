@@ -1,4 +1,6 @@
 import os
+import sys
+
 import cv2
 import ffmpeg
 import numpy as np
@@ -9,6 +11,15 @@ from art.estimators.classification import PyTorchClassifier
 from torchvision import models
 import streamlit as st
 
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+if getattr(sys, "frozen", False):
+    # Add the ffmpeg path for the bundled executable
+    base_path = sys._MEIPASS
+    os.environ["PATH"] += os.pathsep + os.path.join(base_path, "ffmpeg")
+else:
+    # Add ffmpeg path for normal script execution
+    os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
 # Function to load media
 def load_media(file_path):
     ext = os.path.splitext(file_path)[1].lower()

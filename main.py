@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import customtkinter as ctk
@@ -15,6 +16,17 @@ import numpy as np
 # Global Variables
 input_file = None
 output_file = None
+
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+if getattr(sys, "frozen", False):
+    # Add the ffmpeg path for the bundled executable
+    base_path = sys._MEIPASS
+    os.environ["PATH"] += os.pathsep + os.path.join(base_path, "ffmpeg")
+else:
+    # Add ffmpeg path for normal script execution
+    os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
+
 
 # Core Functions
 def load_media(file_path):
