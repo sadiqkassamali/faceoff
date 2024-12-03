@@ -27,3 +27,4 @@ networkx~=3.4.2
 darkdetect~=0.8.0
 customtkinter~=5.2.2
 ffmpeg~=1.4
+future~=1.0.0
