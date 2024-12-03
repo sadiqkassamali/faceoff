@@ -1,3 +1,4 @@
+import logging
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -28,11 +29,20 @@ else:
     os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
 
 
+logging.basicConfig(level=logging.DEBUG)
+
+def log_message(message):
+    logging.debug(message)
+    log_textbox.insert(tk.END, f"{message}\n")
+    log_textbox.see(tk.END)
+
 # Core Functions
 def load_media(file_path):
     ext = os.path.splitext(file_path)[1].lower()
     if ext in [".jpg", ".png", ".jpeg", ".bmp", ".tiff"]:
         image = cv2.imread(file_path)
+        if image is None:
+            raise ValueError(f"Failed to load image from {file_path}")
         return "image", [image]
     elif ext in [".mp4", ".avi", ".mkv", ".mov"]:
         cap = cv2.VideoCapture(file_path)
@@ -41,8 +51,12 @@ def load_media(file_path):
             ret, frame = cap.read()
             if not ret:
                 break
+            if frame is None:
+                raise ValueError(f"Failed to load a valid frame from {file_path}")
             frames.append(frame)
         cap.release()
+        if not frames:
+            raise ValueError("No valid frames found in video")
         return "video", frames
     else:
         raise ValueError("Unsupported file format. Provide an image or video.")
@@ -141,7 +155,9 @@ def process_file():
         return
 
     output_path = os.path.splitext(input_file)[0] + "_processed.mp4"
-    threading.Thread(target=lambda: process_and_finish(input_file, output_path)).start()
+
+    # Start processing in a separate thread to avoid blocking the GUI
+    threading.Thread(target=process_and_finish, args=(input_file, output_path), daemon=True).start()
 
 def process_and_finish(input_path, output_path):
     try:

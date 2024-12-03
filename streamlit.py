@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-
 import cv2
 import ffmpeg
 import numpy as np
@@ -21,10 +21,15 @@ else:
     # Add ffmpeg path for normal script execution
     os.environ["PATH"] += os.pathsep + os.path.abspath("ffmpeg")
 # Function to load media
+
+logging.basicConfig(level=logging.DEBUG)
+
 def load_media(file_path):
     ext = os.path.splitext(file_path)[1].lower()
     if ext in [".jpg", ".png", ".jpeg", ".bmp", ".tiff"]:
         image = cv2.imread(file_path)
+        if image is None:
+            raise ValueError(f"Failed to load image from {file_path}")
         return "image", [image]
     elif ext in [".mp4", ".avi", ".mkv", ".mov"]:
         cap = cv2.VideoCapture(file_path)
@@ -33,8 +38,12 @@ def load_media(file_path):
             ret, frame = cap.read()
             if not ret:
                 break
+            if frame is None:
+                raise ValueError(f"Failed to load a valid frame from {file_path}")
             frames.append(frame)
         cap.release()
+        if not frames:
+            raise ValueError("No valid frames found in video")
         return "video", frames
     else:
         raise ValueError("Unsupported file format. Provide an image or video.")
