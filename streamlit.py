@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-import cv2
+import  cv2
 import ffmpeg
 import numpy as np
 import torch
@@ -23,6 +23,7 @@ else:
 # Function to load media
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 def load_media(file_path):
     ext = os.path.splitext(file_path)[1].lower()
@@ -130,10 +131,13 @@ st.title("AI-Powered Media Processor")
 uploaded_file = st.file_uploader("Upload your media file (image/video)", type=["jpg", "png", "jpeg", "bmp", "tiff", "mp4", "avi", "mkv", "mov"])
 
 if uploaded_file:
+
+
     temp_input_path = os.path.join("temp_input", uploaded_file.name)
     temp_output_path = os.path.splitext(temp_input_path)[0] + "_processed.mp4"
-    with open(temp_input_path, "wb") as f:
-        f.write(uploaded_file.read())
+    if os.path.exists(temp_input_path):
+        with open(temp_input_path, "wb") as f:
+            f.write(uploaded_file.read())
 
     if st.button("Process File"):
         try:
