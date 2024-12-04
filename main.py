@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -38,13 +39,13 @@ def log_message(message):
 
 # Core Functions
 def load_media(file_path):
-    ext = os.path.splitext(file_path)[1].lower()
-    if ext in [".jpg", ".png", ".jpeg", ".bmp", ".tiff"]:
+    media_type = get_media_type(file_path)
+    if media_type == "image":
         image = cv2.imread(file_path)
         if image is None:
             raise ValueError(f"Failed to load image from {file_path}")
         return "image", [image]
-    elif ext in [".mp4", ".avi", ".mkv", ".mov"]:
+    elif media_type == "video":
         cap = cv2.VideoCapture(file_path)
         frames = []
         while cap.isOpened():
@@ -59,7 +60,7 @@ def load_media(file_path):
             raise ValueError("No valid frames found in video")
         return "video", frames
     else:
-        raise ValueError("Unsupported file format. Provide an image or video.")
+        raise ValueError(f"Unsupported file type: {file_path}")
 
 def save_media(media_type, frames, output_path, fps=30):
     if media_type == "image":
@@ -106,6 +107,17 @@ def process_media(input_path, output_path):
     compress_media(output_path, compressed_output_path, media_type)
 
     output_file = compressed_output_path
+
+
+def get_media_type(file_path):
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type:
+        if "image" in mime_type:
+            return "image"
+        elif "video" in mime_type:
+            return "video"
+    raise ValueError(f"Unsupported file type for: {file_path}")
+
 
 # Supporting Functions
 def apply_noise(image, noise_level=0.01):
