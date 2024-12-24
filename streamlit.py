@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import opencv_python as cv2
 import ffmpeg
 import numpy as np
 import torch
