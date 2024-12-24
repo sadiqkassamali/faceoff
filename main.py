@@ -7,8 +7,6 @@ import customtkinter as ctk
 import threading
 import os
 import torch
-from art.attacks.evasion import FastGradientMethod
-from art.estimators.classification import PyTorchClassifier
 from torchvision import models
 import ffmpeg
 import numpy as np

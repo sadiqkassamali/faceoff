@@ -4,8 +4,6 @@ import sys
 import ffmpeg
 import numpy as np
 import torch
-from art.attacks.evasion import FastGradientMethod
-from art.estimators.classification import PyTorchClassifier
 from torchvision import models
 import streamlit as st
 from main import compress_media
