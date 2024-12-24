@@ -56,5 +56,5 @@ cachetools==5.5.0
 blinker==1.9.0
 darkdetect==0.8.0
 customtkinter==5.2.2
-opencv_python<4.6.0
-opencv-contrib-python<4.6.0
+opencv_python<5.0.0.0
+opencv-contrib-python<5.0.0.0
