@@ -6,7 +6,6 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 import threading
 import os
-import opencv_python as cv2
 from stegano import lsb
 import torch
 from art.attacks.evasion import FastGradientMethod
