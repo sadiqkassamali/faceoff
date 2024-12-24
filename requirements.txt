@@ -9,7 +9,6 @@ scikit-learn==1.5.2
 typing_extensions==4.12.2
 torchvision==0.20.1
 pillow==10.4.0
-opencv-python==4.10.0.84
 crayons==0.4.0
 stegano==0.11.4
 gitdb==4.0.11
@@ -57,4 +56,5 @@ cachetools==5.5.0
 blinker==1.9.0
 darkdetect==0.8.0
 customtkinter==5.2.2
-opencv_python~=4.10.0
+opencv_python<4.6.0
+opencv-contrib-python<4.6.0
