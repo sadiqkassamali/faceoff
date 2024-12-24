@@ -4,7 +4,6 @@ import sys
 import ffmpeg
 import numpy as np
 import torch
-from stegano import lsb
 from art.attacks.evasion import FastGradientMethod
 from art.estimators.classification import PyTorchClassifier
 from torchvision import models

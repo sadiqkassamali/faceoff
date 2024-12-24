@@ -6,7 +6,6 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 import threading
 import os
-from stegano import lsb
 import torch
 from art.attacks.evasion import FastGradientMethod
 from art.estimators.classification import PyTorchClassifier
