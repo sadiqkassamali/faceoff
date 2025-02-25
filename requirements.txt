@@ -34,7 +34,7 @@ altair==5.5.0
 jsonschema==4.23.0
 narwhals==1.15.1
 pyarrow==18.1.0
-Jinja2==3.1.4
+Jinja2==3.1.5
 referencing==0.35.1
 ffmpeg==1.4
 MarkupSafe==3.0.2
